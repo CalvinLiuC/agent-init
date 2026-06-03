@@ -1,0 +1,29 @@
+{
+  "name": "agent-init",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "firstAgent.ts",
+  "scripts": {
+    "dev": "tsx --env-file=.env firstAgent.ts",
+    "watch": "tsx watch --env-file=.env firstAgent.ts",
+    "build": "tsc",
+    "start": "node --env-file=.env dist/firstAgent.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.67",
+    "@anthropic-ai/sdk": "^0.98.0",
+    "ai": "^6.0.193",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "dotenv": "^17.4.2",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}

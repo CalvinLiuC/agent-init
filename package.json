@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "firstAgent.ts",
+  "main": "index.ts",
   "scripts": {
-    "dev": "tsx --env-file=.env firstAgent.ts",
-    "watch": "tsx watch --env-file=.env firstAgent.ts",
+    "dev": "tsx --env-file=.env index.ts",
+    "watch": "tsx watch --env-file=.env index.ts",
     "build": "tsc",
-    "start": "node --env-file=.env dist/firstAgent.js",
+    "start": "node --env-file=.env dist/index.js",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
@@ -18,6 +18,8 @@
     "@ai-sdk/openai": "^3.0.67",
     "@anthropic-ai/sdk": "^0.98.0",
     "ai": "^6.0.193",
+    "openai": "^6.41.0",
+    "serpapi": "^2.2.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {

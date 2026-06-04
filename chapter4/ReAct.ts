@@ -44,13 +44,7 @@ export class ReActAgent {
     while (currentStep < this.maxSteps) {
       currentStep += 1;
       console.log(`\n--- 第 ${currentStep} 步 ---`);
-
-      const toolsDesc = this.toolExecutor.getAvailableTools();
-      const historyStr = this.history.join("\n");
-      const prompt = REACT_PROMPT_TEMPLATE.replace("{tools}", toolsDesc)
-        .replace("{question}", question)
-        .replace("{history}", historyStr);
-
+      const prompt = this.parsePrompt(question);
       const messages: ChatCompletionMessageParam[] = [
         { role: "user", content: prompt },
       ];
@@ -93,6 +87,15 @@ export class ReActAgent {
 
     console.log("已达到最大步数，流程终止。");
     return null;
+  }
+
+  private parsePrompt(question: string) {
+    const toolsDesc = this.toolExecutor.getAvailableTools();
+    const historyStr = this.history.join("\n");
+    const prompt = REACT_PROMPT_TEMPLATE.replace("{tools}", toolsDesc)
+      .replace("{question}", question)
+      .replace("{history}", historyStr);
+    return prompt
   }
 
   private parseOutput(text: string): {

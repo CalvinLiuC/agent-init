@@ -4,5 +4,9 @@
 // main();
 
 //reAct client
-import { main } from "./chapter4/ReAct.js";
+// import { main } from "./chapter4/ReAct.js";
+// main();
+
+//plan and resolve client
+import { main } from "./chapter4/PlanAndResolve.js";
 main();

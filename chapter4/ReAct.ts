@@ -1,6 +1,6 @@
-import { ChatCompletionMessageParam } from "openai/resources";
-import { HelloAgentsLLM } from "./llmClient.js";
-import { searchTool, ToolExecutor } from "./tools.js";
+import { ChatCompletionMessageParam } from 'openai/resources';
+import { HelloAgentsLLM } from './llmClient.js';
+import { searchTool, ToolExecutor } from './tools.js';
 const REACT_PROMPT_TEMPLATE = `
 请注意，你是一个有能力调用外部工具的智能助手。
 
@@ -26,11 +26,7 @@ export class ReActAgent {
   private toolExecutor: ToolExecutor;
   private maxSteps: number;
   private history: string[];
-  constructor(
-    llmClient: HelloAgentsLLM,
-    toolExecutor: ToolExecutor,
-    maxSteps = 5
-  ) {
+  constructor(llmClient: HelloAgentsLLM, toolExecutor: ToolExecutor, maxSteps = 5) {
     this.llmClient = llmClient;
     this.toolExecutor = toolExecutor;
     this.maxSteps = maxSteps;
@@ -45,23 +41,21 @@ export class ReActAgent {
       currentStep += 1;
       console.log(`\n--- 第 ${currentStep} 步 ---`);
       const prompt = this.parsePrompt(question);
-      const messages: ChatCompletionMessageParam[] = [
-        { role: "user", content: prompt },
-      ];
+      const messages: ChatCompletionMessageParam[] = [{ role: 'user', content: prompt }];
       const responseText = await this.llmClient.think(messages);
       if (!responseText) {
-        console.log("错误：LLM未能返回有效响应。");
+        console.log('错误：LLM未能返回有效响应。');
         break;
       }
 
       const { thought, action } = this.parseOutput(responseText);
       if (thought) console.log(`🤔 思考: ${thought}`);
       if (!action) {
-        console.log("警告：未能解析出有效的Action，流程终止。");
+        console.log('警告：未能解析出有效的Action，流程终止。');
         break;
       }
 
-      if (action.startsWith("Finish")) {
+      if (action.startsWith('Finish')) {
         // 如果是Finish指令，提取最终答案并结束
         const finalAnswer = this.parseActionInput(action);
         console.log(`🎉 最终答案: ${finalAnswer}`);
@@ -70,7 +64,7 @@ export class ReActAgent {
 
       const { toolName, toolInput } = this.parseAction(action);
       if (!toolName || !toolInput) {
-        this.history.push("Observation: 无效的Action格式，请检查。");
+        this.history.push('Observation: 无效的Action格式，请检查。');
         continue;
       }
 
@@ -85,17 +79,17 @@ export class ReActAgent {
       this.history.push(`Observation: ${observation}`);
     }
 
-    console.log("已达到最大步数，流程终止。");
+    console.log('已达到最大步数，流程终止。');
     return null;
   }
 
   private parsePrompt(question: string) {
     const toolsDesc = this.toolExecutor.getAvailableTools();
-    const historyStr = this.history.join("\n");
-    const prompt = REACT_PROMPT_TEMPLATE.replace("{tools}", toolsDesc)
-      .replace("{question}", question)
-      .replace("{history}", historyStr);
-    return prompt
+    const historyStr = this.history.join('\n');
+    const prompt = REACT_PROMPT_TEMPLATE.replace('{tools}', toolsDesc)
+      .replace('{question}', question)
+      .replace('{history}', historyStr);
+    return prompt;
   }
 
   private parseOutput(text: string): {
@@ -123,7 +117,7 @@ export class ReActAgent {
 
   private parseActionInput(actionText: string): string {
     const match = actionText.match(/^\w+\[([\s\S]*)\]/);
-    return match ? match[1] : "";
+    return match ? match[1] : '';
   }
 }
 
@@ -131,9 +125,9 @@ export async function main() {
   const llm = new HelloAgentsLLM();
   const toolExecutor = new ToolExecutor();
   const searchDesc =
-    "一个网页搜索引擎。当你需要回答关于时事、事实以及在你的知识库中找不到的信息时，应使用此工具。";
-  toolExecutor.registerTool("Search", searchDesc, searchTool);
+    '一个网页搜索引擎。当你需要回答关于时事、事实以及在你的知识库中找不到的信息时，应使用此工具。';
+  toolExecutor.registerTool('Search', searchDesc, searchTool);
   const agent = new ReActAgent(llm, toolExecutor);
-  const question = "华为最新的手机是哪一款？它的主要卖点是什么？";
+  const question = '华为最新的手机是哪一款？它的主要卖点是什么？';
   await agent.run(question);
 }

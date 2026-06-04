@@ -1,4 +1,4 @@
-//---- chapter 3 -----
+//---- chapter 4 -----
 // llm client
 // import { main } from "./chapter4/llmClient.js";
 // main();
@@ -8,5 +8,9 @@
 // main();
 
 //plan and resolve client
-import { main } from "./chapter4/PlanAndResolve.js";
+// import { main } from './chapter4/PlanAndResolve.js';
+// main();
+
+// reflection agent
+import { main } from './chapter4/Reflection.js';
 main();

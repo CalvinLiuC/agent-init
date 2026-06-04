@@ -20,9 +20,7 @@ class Planner {
   }
   async plan(question: string): Promise<string[]> {
     const prompt = this.parsePrompt(question);
-    const messages: ChatCompletionMessageParam[] = [
-      { role: 'user', content: prompt },
-    ];
+    const messages: ChatCompletionMessageParam[] = [{ role: 'user', content: prompt }];
 
     console.log('--- 正在生成计划 ---');
     const responseText = (await this.llmClient.think(messages)) || '';
@@ -32,9 +30,7 @@ class Planner {
     // 解析LLM输出的列表字符串
     try {
       // 优先提取 ```typescript / ```python / ``` 代码块中的内容，否则直接定位数组
-      const fenceMatch = responseText.match(
-        /```(?:typescript|python|json)?\s*([\s\S]*?)```/,
-      );
+      const fenceMatch = responseText.match(/```(?:typescript|python|json)?\s*([\s\S]*?)```/);
       let planStr = fenceMatch ? fenceMatch[1].trim() : responseText.trim();
 
       // 截取首个 [ 到最后一个 ] 之间的内容，避免多余的说明文字干扰解析
@@ -95,9 +91,7 @@ class Executor {
       const planItem = plan[i];
       const step = Number(i) + 1;
       const prompt = this.parsePrompt(q, plan, history, step);
-      const messages: ChatCompletionMessageParam[] = [
-        { role: 'user', content: prompt },
-      ];
+      const messages: ChatCompletionMessageParam[] = [{ role: 'user', content: prompt }];
       responseText = await this.llmClient.think(messages);
       if (!responseText) {
         console.error('Error: no response');
@@ -109,12 +103,7 @@ class Executor {
     return responseText;
   }
 
-  private parsePrompt(
-    q: string,
-    p: Array<string>,
-    history: Array<string>,
-    currentStep: number,
-  ) {
+  private parsePrompt(q: string, p: Array<string>, history: Array<string>, currentStep: number) {
     const planStr = p.join('\n');
     const historyStr = history.join('\n');
     const prompt = EXECUTOR_PROMPT_TEMPLATE.replace('{question}', q)
@@ -150,13 +139,8 @@ export function main() {
   const llmClient = new HelloAgentsLLM();
   const planner = new Planner(llmClient);
   const executor = new Executor(llmClient);
-  const planAndResolveAgent = new PlanAndResolveAgent(
-    llmClient,
-    planner,
-    executor,
-  );
+  const planAndResolveAgent = new PlanAndResolveAgent(llmClient, planner, executor);
   const question =
     '一个水果店周一卖出了15个苹果。周二卖出的苹果数量是周一的两倍。周三卖出的数量比周二少了5个。请问这三天总共卖出了多少个苹果？';
   planAndResolveAgent.run(question);
 }
-

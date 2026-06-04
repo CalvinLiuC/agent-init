@@ -1,5 +1,5 @@
-import { getJson } from "serpapi";
-import "dotenv/config";
+import { getJson } from 'serpapi';
+import 'dotenv/config';
 
 /**
  * 一个基于SerpApi的实战网页搜索引擎工具。
@@ -10,10 +10,10 @@ export async function searchTool(query: string) {
   try {
     const apiKey = process.env.SERPAPI_API_KEY;
     if (!apiKey) {
-      return "错误：SERPAPI_API_KEY 未在 .env 文件中配置。";
+      return '错误：SERPAPI_API_KEY 未在 .env 文件中配置。';
     }
     const results = await getJson({
-      engine: "google",
+      engine: 'google',
       q: query,
       api_key: apiKey,
       // gl:'cn',
@@ -21,7 +21,7 @@ export async function searchTool(query: string) {
     });
     // 智能解析：优先寻找最直接的答案
     if (results.answer_box_list) {
-      return (results.answer_box_list as string[]).join("\n");
+      return (results.answer_box_list as string[]).join('\n');
     }
     if (results.answer_box && results.answer_box.answer) {
       return results.answer_box.answer;
@@ -33,8 +33,8 @@ export async function searchTool(query: string) {
       // 如果没有直接答案，则返回前三个有机结果的摘要
       const snippets = (results.organic_results as Array<Record<string, any>>)
         .slice(0, 3)
-        .map((res, i) => `[${i + 1}] ${res.title ?? ""}\n${res.snippet ?? ""}`);
-      return snippets.join("\n\n");
+        .map((res, i) => `[${i + 1}] ${res.title ?? ''}\n${res.snippet ?? ''}`);
+      return snippets.join('\n\n');
     }
 
     return `对不起，没有找到关于 '${query}' 的信息。`;
@@ -82,7 +82,7 @@ export class ToolExecutor {
   getAvailableTools(): string {
     return Object.entries(this.tools)
       .map(([name, info]) => `- ${name}: ${info.description}`)
-      .join("\n");
+      .join('\n');
   }
 }
 
@@ -93,22 +93,22 @@ async function main() {
 
   // 2. 注册我们的实战搜索工具
   const searchDescription =
-    "一个网页搜索引擎。当你需要回答关于时事、事实以及在你的知识库中找不到的信息时，应使用此工具。";
-  toolExecutor.registerTool("Search", searchDescription, searchTool);
+    '一个网页搜索引擎。当你需要回答关于时事、事实以及在你的知识库中找不到的信息时，应使用此工具。';
+  toolExecutor.registerTool('Search', searchDescription, searchTool);
 
   // 3. 打印可用的工具
-  console.log("\n--- 可用的工具 ---");
+  console.log('\n--- 可用的工具 ---');
   console.log(toolExecutor.getAvailableTools());
 
   // 4. 智能体的Action调用，这次我们问一个实时性的问题
   console.log("\n--- 执行 Action: Search['英伟达最新的GPU型号是什么'] ---");
-  const toolName = "Search";
-  const toolInput = "英伟达最新的GPU型号是什么";
+  const toolName = 'Search';
+  const toolInput = '英伟达最新的GPU型号是什么';
 
   const toolFunction = toolExecutor.getTool(toolName);
   if (toolFunction) {
     const observation = await toolFunction(toolInput);
-    console.log("--- 观察 (Observation) ---");
+    console.log('--- 观察 (Observation) ---');
     console.log(observation);
   } else {
     console.log(`错误：未找到名为 '${toolName}' 的工具。`);

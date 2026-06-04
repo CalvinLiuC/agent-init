@@ -45,6 +45,7 @@ const REFINE_PROMPT_TEMPLATE = `
 请直接输出优化后的代码，不要包含任何额外的解释。
 `;
 type RecordType = 'execution' | 'reflection';
+
 interface Record {
   record_type: RecordType;
   content: string;
@@ -52,18 +53,16 @@ interface Record {
 
 class Memory {
   private records: Array<Record> = [];
-  constructor() { }
+  constructor() {}
   add_record(record_type: RecordType, content: string) {
     this.records.push({ record_type, content });
-    console.info(
-      `新增一条结果：record_type->${record_type},content->${content}`,
-    );
+    console.info(`新增一条结果：record_type->${record_type},content->${content}`);
   }
 
   //获取短期的消息记录
   get_trajectory() {
     const trajectory: Array<string> = [];
-    this.records.forEach(item => {
+    this.records.forEach((item) => {
       const { record_type, content } = item;
       if (record_type === 'execution') {
         trajectory.push(`上一轮的尝试代码：${content}`);
@@ -71,11 +70,11 @@ class Memory {
         trajectory.push(`评审员反馈结果：${content}`);
       }
     });
-    return trajectory.join('/n');
+    return trajectory.join('/n').trim();
   }
 
   //获取最后一次执行的消息记录
-  get_last_execution(): string | null {
+  getLastExecution(): string | null {
     for (let i = this.records.length - 1; i >= 0; i--) {
       if (this.records[i].record_type === 'execution') {
         return this.records[i].content;
@@ -88,21 +87,42 @@ class Memory {
 class ReflectionAgent {
   private llmClient: HelloAgentsLLM;
   private memory: Memory;
-  constructor(llmClient: HelloAgentsLLM, memory: Memory) {
+  private max_step: number;
+  constructor(llmClient: HelloAgentsLLM, memory: Memory, max_step?: number) {
     this.llmClient = llmClient;
     this.memory = memory;
+    this.max_step = max_step ?? 5;
   }
 
   async run(task: string) {
     const initTaskPrompt = this.parseInitialPrompt(task);
-    const messages: ChatCompletionMessageParam[] = [
-      { role: "user", content: initTaskPrompt }
-    ];
-    const initialCode = await this.llmClient.think(messages)
-    if (!initialCode) {
-      return 'llm 返回为null'
+    const initialCode = await this.getLlmResponse(initTaskPrompt);
+    this.memory.add_record('execution', initialCode);
+
+    for (let i = 0; i < this.max_step; i++) {
+      const lastExecution = this.memory.getLastExecution() as string;
+      const reflectionPrompt = this.parseReflectPrompt(task, lastExecution);
+      const feedback = await this.getLlmResponse(reflectionPrompt);
+      this.memory.add_record('reflection', feedback);
+
+      //检查是否需要改进
+      if (
+        feedback.includes('无需改进') ||
+        feedback.toLowerCase().includes('no need for improvement')
+      ) {
+        console.log('\n✅ 反思认为代码已无需改进，任务完成。');
+        break;
+      }
+
+      //需要改进进行优化
+      const refinePrompt = this.parseRefinePrompt(task, lastExecution, feedback);
+      const refineResult = await this.getLlmResponse(refinePrompt);
+      this.memory.add_record('execution', refineResult);
     }
-    this.memory.add_record('execution', initialCode)
+
+    const finalCode = this.memory.getLastExecution();
+    console.log(`\n--- 任务完成 ---\n最终生成的代码:\n${finalCode}`);
+    return finalCode;
   }
 
   private parseInitialPrompt(task: string) {
@@ -110,19 +130,26 @@ class ReflectionAgent {
   }
 
   private parseReflectPrompt(task: string, code: string) {
-    return REFLECT_PROMPT_TEMPLATE.replace('{task}', task).replace(
-      '{code}',
-      code,
-    );
+    return REFLECT_PROMPT_TEMPLATE.replace('{task}', task).replace('{code}', code);
   }
 
-  private parseRefinePrompt(
-    task: string,
-    last_code_attempt: string,
-    feedback: string,
-  ) {
+  private parseRefinePrompt(task: string, last_code_attempt: string, feedback: string) {
     return REFINE_PROMPT_TEMPLATE.replace(`{task}`, task)
       .replace('{last_code_attempt}', last_code_attempt)
       .replace('{feedback}', feedback);
   }
+
+  private async getLlmResponse(prompt: string): Promise<string> {
+    const messages: ChatCompletionMessageParam[] = [{ role: 'user', content: prompt }];
+    // 确保能处理生成器可能返回None的情况
+    const responseText = (await this.llmClient.think(messages)) ?? '';
+    return responseText;
+  }
+}
+
+export function main() {
+  const llmClient = new HelloAgentsLLM();
+  const memory = new Memory();
+  const reflectionAgent = new ReflectionAgent(llmClient, memory);
+  reflectionAgent.run('编写一个TypeScript函数，找出1到n之间所有的素数 (prime numbers)。');
 }
